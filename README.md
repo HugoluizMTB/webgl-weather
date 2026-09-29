@@ -2,101 +2,101 @@
 
 **Demo:** https://hugoluizmtb.github.io/webgl-weather/
 
-Sempre achei o fundo animado do app Tempo do macOS (e do iOS) um dos detalhes mais bonitos do sistema: o céu que muda com a hora, as nuvens que passam, a chuva batendo no vidro e escorrendo. Este projeto é a minha tentativa de replicar isso em React, rodando no navegador, com dados de clima reais do lugar onde a pessoa está.
+I've always thought the animated background of the macOS (and iOS) Weather app is one of the most beautiful details in the system: the sky shifting with the time of day, clouds drifting by, rain hitting the glass and running down. This project is my attempt to recreate it in React, running in the browser, with real weather data for wherever the viewer is.
 
-Tudo é desenhado em tempo real na GPU com WebGL2: não há vídeo, imagem nem sprite. O céu, as nuvens, o sol, a lua, as estrelas, os raios e as gotas saem de shaders e de uma simulação física das gotas.
+Everything is drawn in real time on the GPU with WebGL2. There are no videos, images or sprites. The sky, clouds, sun, moon, stars, lightning and raindrops all come from shaders and a physical simulation of the drops.
 
-## Tecnologias
+## Tech stack
 
-- **WebGL2 puro** (GLSL ES 3.0), sem Three.js nem outra biblioteca de renderização.
-- **TypeScript** na engine (`src/engine`), que roda o próprio loop e não depende de React.
-- **React 18** só como casca: o componente repassa parâmetros e não re-renderiza por quadro.
-- **Vite** para desenvolvimento e build.
-- **GitHub Actions + GitHub Pages** para publicar a demo a cada push na `main`.
+- **Plain WebGL2** (GLSL ES 3.0), no Three.js or any other rendering library.
+- **TypeScript** for the engine (`src/engine`), which runs its own loop and does not depend on React.
+- **React 18** only as a thin shell: the component passes parameters through and never re-renders per frame.
+- **Vite** for development and builds.
+- **GitHub Actions + GitHub Pages** to publish the demo on every push to `main`.
 
-## A pesquisa por trás
+## The research behind it
 
-A ideia era não "chutar" a aparência, e sim partir de como as coisas funcionam de verdade e só depois ajustar pelo olho. Antes de escrever cada parte, pesquisei a física e a literatura:
+The goal was not to eyeball the look, but to start from how things actually work and only then tune by eye. Before writing each part, I researched the physics and the literature:
 
-- **Chuva:** distribuição do tamanho das gotas (Marshall & Palmer), velocidade terminal de queda (Gunn & Kinzer, Atlas et al.), inclinação pelo vento e o brilho dos rastros conforme o tempo de exposição (Garg & Nayar). Detalhes na seção [Física da chuva](#física-da-chuva).
-- **Gotas no vidro:** quando a tensão superficial segura uma gota e quando ela escorre (Furmidge), a velocidade de escorrimento (Le Grand, Daerr & Limat) e as "pérolas" que ela solta pela traseira (Podgorski, Flesselles & Limat).
-- **Refração:** cada gota funciona como uma lente. O shader usa a normal da gota para amostrar o lado oposto da cena, invertendo e ampliando o que está atrás, como numa gota de verdade; gotículas quase não distorcem. O vidro embaçado desfoca e clareia o fundo.
-- **Luz e sombra:** as gotas têm lado de sombra, borda escura e brilho especular apontado para o sol. As nuvens comparam a própria densidade um passo na direção do sol, o que cria as bordas iluminadas. O relâmpago acende as nuvens por dentro.
-- **Sol e lua:** a posição segue a hora local do lugar e os horários reais de nascer e pôr do sol. O sol tem escurecimento de borda e fica alaranjado perto do horizonte. A lua é uma esfera iluminada pela fase real do dia (calculada pelo mês sinódico), com mares, crateras e luz cinérea, e a crescente é orientada para o hemisfério sul.
-- **Clima de Recife:** os presets usam vento de leste, como os alísios de sudeste que trazem a quadra chuvosa de abril a julho.
+- **Rain:** drop size distribution (Marshall & Palmer), terminal fall speed (Gunn & Kinzer, Atlas et al.), slant from wind, and streak brightness as a function of exposure time (Garg & Nayar). Details in [Rain physics](#rain-physics).
+- **Drops on glass:** when surface tension holds a drop in place and when it slides (Furmidge), sliding speed (Le Grand, Daerr & Limat), and the "pearls" a fast drop sheds from its tail (Podgorski, Flesselles & Limat).
+- **Refraction:** each drop acts as a lens. The shader uses the drop's normal to sample the opposite side of the scene, flipping and magnifying what's behind it, like a real drop; tiny droplets barely distort. Fogged glass blurs and brightens the background.
+- **Light and shadow:** drops have a shaded side, a dark rim and a specular highlight facing the sun. Clouds compare their own density one step toward the sun, which produces lit edges. Lightning lights the clouds from within.
+- **Sun and moon:** their position follows the location's local time and the real sunrise and sunset times. The sun has limb darkening and turns orange near the horizon. The moon is a sphere lit by today's real phase (computed from the synodic month), with maria, craters and earthshine, and the crescent is oriented for the southern hemisphere.
+- **Recife's climate:** the presets use easterly wind, like the southeast trade winds that bring the April–July rainy season.
 
-## APIs de clima
+## Weather APIs
 
-| Serviço | Para quê | Chave |
+| Service | Used for | Key |
 |---|---|---|
-| [Open-Meteo](https://open-meteo.com) | Clima atual e do dia: temperatura, nuvens por altitude, precipitação, vento, rajadas, visibilidade, UV, nascer e pôr do sol, código WMO da condição | Não precisa (grátis para uso não comercial) |
-| [BigDataCloud](https://www.bigdatacloud.com/free-api/free-reverse-geocode-to-city-api) | Nome da cidade e localização aproximada por IP | Não precisa (só pode ser chamado do navegador do usuário) |
+| [Open-Meteo](https://open-meteo.com) | Current and daily weather: temperature, cloud cover by altitude, precipitation, wind, gusts, visibility, UV, sunrise and sunset, WMO condition code | Not needed (free for non-commercial use) |
+| [BigDataCloud](https://www.bigdatacloud.com/free-api/free-reverse-geocode-to-city-api) | City name and approximate IP-based location | Not needed (may only be called from the user's browser) |
 
-Hoje o Open-Meteo é a única fonte de clima. A conversão para os parâmetros do céu fica isolada em `toSkyParams` (`src/live/openMeteo.ts`), então outra API pode entrar reescrevendo só esse arquivo.
+Open-Meteo is currently the only weather source. The mapping to sky parameters is isolated in `toSkyParams` (`src/live/openMeteo.ts`), so another API can be plugged in by rewriting just that file.
 
-## Uso
+## Usage
 
 ```tsx
 import { WeatherSky } from "webgl-weather";
 
 <div style={{ position: "relative", height: 400, borderRadius: 24, overflow: "hidden" }}>
   <WeatherSky condition="rain" style={{ position: "absolute", inset: 0 }} />
-  {/* seu conteúdo por cima */}
+  {/* your content on top */}
 </div>
 ```
 
 ### Props
 
-| Prop | Tipo | Padrão | Descrição |
+| Prop | Type | Default | Description |
 |---|---|---|---|
-| `condition` | `"clear" \| "partly" \| "cloudy" \| "drizzle" \| "showers" \| "rain" \| "heavy" \| "storm"` | `"clear"` | Preset pronto |
-| `hour` | `number` (0–24) | hora atual | Posição do sol/lua e cor do céu |
-| `cloud`, `rain`, `storm` | `number` (0–1) | do preset | Sobrescrevem o preset |
-| `wind` | `number` (-1–1) | do preset | Inclina a chuva e move as nuvens |
-| `sunX`, `moonX` | `number` (0–1) | pela hora | Posição horizontal manual |
-| `sunY`, `moonY` | `number` (-1–1) | pela hora | Elevação manual (abaixo de 0 some no horizonte) |
-| `sunSize` | `number` | `0.042` | Raio do sol, fração da altura da tela |
-| `moonSize` | `number` | `0.036` | Raio da lua, fração da altura da tela |
-| `moonPhase` | `number` (0–1) | fase real de hoje | 0 nova, 0.25 crescente, 0.5 cheia, 0.75 minguante |
-| `renderScale` | `number` | `0.6` | Fração da resolução nativa |
-| `maxFps` | `number` | `60` | Teto de quadros por segundo |
-| `maxDrops` | `number` | `1600` | Gotas com chuva em 100% |
-| `transition` | `number` | `1.6` | Duração das transições (s) |
-| `sunrise`, `sunset` | `number` | `5.3`, `17.6` | Horários do nascer e pôr do sol |
-| `glass` | `number` (0–1) | `1` | Gotas no vidro (a água vem da chuva e seca sozinha) |
-| `flare` | `number` (0–1) | `1` | Reflexo do sol na lente |
+| `condition` | `"clear" \| "partly" \| "cloudy" \| "drizzle" \| "showers" \| "rain" \| "heavy" \| "storm"` | `"clear"` | Ready-made preset |
+| `hour` | `number` (0–24) | current hour | Sun/moon position and sky color |
+| `cloud`, `rain`, `storm` | `number` (0–1) | from preset | Override the preset |
+| `wind` | `number` (-1–1) | from preset | Slants the rain and moves the clouds |
+| `sunX`, `moonX` | `number` (0–1) | from hour | Manual horizontal position |
+| `sunY`, `moonY` | `number` (-1–1) | from hour | Manual elevation (below 0 sets below the horizon) |
+| `sunSize` | `number` | `0.042` | Sun radius, as a fraction of screen height |
+| `moonSize` | `number` | `0.036` | Moon radius, as a fraction of screen height |
+| `moonPhase` | `number` (0–1) | today's real phase | 0 new, 0.25 first quarter, 0.5 full, 0.75 last quarter |
+| `renderScale` | `number` | `0.6` | Fraction of native resolution |
+| `maxFps` | `number` | `60` | Frame rate cap |
+| `maxDrops` | `number` | `1600` | Drops at 100% rain |
+| `transition` | `number` | `1.6` | Transition duration (s) |
+| `sunrise`, `sunset` | `number` | `5.3`, `17.6` | Sunrise and sunset times |
+| `glass` | `number` (0–1) | `1` | Drops on the glass (water comes from the rain and dries on its own) |
+| `flare` | `number` (0–1) | `1` | Sun lens flare |
 
-### Tipografia (`WeatherHeader`)
+### Typography (`WeatherHeader`)
 
-Cabeçalho com cidade, temperatura, condição e máx./mín., pronto para ir por cima do céu.
+Header with city, temperature, condition and high/low, ready to sit on top of the sky.
 
 ```tsx
 import { WeatherSky, WeatherHeader } from "webgl-weather";
 
 <WeatherSky condition="partly" />
 <WeatherHeader
-  city="Recife" temp={29} condition="Sol entre nuvens" hi={31} lo={24}
+  city="Recife" temp={29} condition="Partly cloudy" hi={31} lo={24}
   typography={{ preset: "editorial", tempWeight: 250, scale: 1.1, align: "left" }}
 />
 ```
 
-| Opção | Padrão | Descrição |
+| Option | Default | Description |
 |---|---|---|
-| `preset` | `"moderna"` | `nativa` (SF/sistema), `moderna` (Manrope), `geometrica` (Outfit), `editorial` (Fraunces + Manrope), `grotesca` (Bricolage Grotesque), `expandida` (Unbounded + Manrope) |
-| `tempWeight`, `cityWeight`, `labelWeight` | do preset | Pesos de cada nível |
-| `scale` | `1` | Multiplica todos os tamanhos |
-| `tracking` | do preset | Espaçamento da temperatura, em `em` |
-| `shadow` | `0.5` | Sombra de leitura sobre céu claro, 0–1 |
-| `align` | `"center"` | `"center"` ou `"left"` |
-| `display`, `text` | do preset | Qualquer `font-family` para usar sua própria fonte |
+| `preset` | `"moderna"` | `nativa` (SF/system), `moderna` (Manrope), `geometrica` (Outfit), `editorial` (Fraunces + Manrope), `grotesca` (Bricolage Grotesque), `expandida` (Unbounded + Manrope) |
+| `tempWeight`, `cityWeight`, `labelWeight` | from preset | Weight of each level |
+| `scale` | `1` | Multiplies every size |
+| `tracking` | from preset | Temperature letter spacing, in `em` |
+| `shadow` | `0.5` | Legibility shadow over bright skies, 0–1 |
+| `align` | `"center"` | `"center"` or `"left"` |
+| `display`, `text` | from preset | Any `font-family`, to use your own font |
 
-As fontes dos presets vêm do Google Fonts. Carregue as que for usar:
+The preset fonts come from Google Fonts. Load the ones you use:
 
 ```html
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Outfit:wght@100..900&family=Fraunces:opsz,wght,SOFT@9..144,100..900,0..100&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
 ```
 
-### Sem React
+### Without React
 
 ```ts
 import { WeatherEngine, PRESETS } from "webgl-weather";
@@ -107,9 +107,9 @@ engine.set({ ...PRESETS.storm, hour: 19 });
 engine.destroy();
 ```
 
-## Céu ao vivo
+## Live sky
 
-O hook `useLiveWeather()` descobre onde a pessoa está, busca o clima no Open-Meteo e mantém tudo atualizado:
+The `useLiveWeather()` hook finds out where the user is, fetches the weather from Open-Meteo and keeps everything up to date:
 
 ```tsx
 import { WeatherSky, WeatherHeader, useLiveWeather } from "webgl-weather";
@@ -122,85 +122,85 @@ function Card() {
       <WeatherSky hour={live.hour} {...live.sky} />
       <WeatherHeader city={live.place!.city} temp={Math.round(live.weather.temp)}
         condition={live.label} hi={Math.round(live.weather.hi)} lo={Math.round(live.weather.lo)} />
-      <button onClick={live.requestPreciseLocation}>Usar minha localização</button>
+      <button onClick={live.requestPreciseLocation}>Use my location</button>
     </>
   );
 }
 ```
 
-**Ordem da localização:** GPS se a permissão já foi dada → último lugar salvo → localização aproximada por IP (sem pop-up) → Recife. O GPS só é pedido quando a pessoa clica em "Usar minha localização", que é o que os navegadores recomendam.
+**Location order:** GPS if permission was already granted → last saved place → approximate IP location (no prompt) → Recife. GPS is only requested when the user clicks "Use my location", as browsers recommend.
 
-**Hora e sol:** a hora é a do fuso do lugar (`utc_offset_seconds` da API), não a do aparelho. Nascer e pôr do sol vêm da API, então o céu escurece na hora certa em qualquer cidade.
+**Time and sun:** the time is the location's time zone (`utc_offset_seconds` from the API), not the device's. Sunrise and sunset come from the API, so the sky darkens at the right time in any city.
 
-**Atualização:** o clima é buscado de novo a cada 10 minutos e quando a aba volta a ficar visível; o relógio anda a cada 30 segundos.
+**Refresh:** weather is fetched again every 10 minutes and whenever the tab becomes visible; the clock ticks every 30 seconds.
 
-### Como a API vira céu (`toSkyParams`)
+### How the API becomes sky (`toSkyParams`)
 
-| Campo do Open-Meteo | Vira | Como |
+| Open-Meteo field | Becomes | How |
 |---|---|---|
-| `cloud_cover`, `cloud_cover_low/mid/high` | `cloud` | Cobertura total, com as nuvens baixas pesando mais |
-| `weather_code` (WMO) | piso de `cloud`, `rain`, `storm` e o texto da condição | Tabela em `src/live/openMeteo.ts` |
-| `precipitation` | `rain` | mm convertidos em intensidade |
-| `wind_speed_10m`, `wind_direction_10m` | `wind` | Força e sentido (leste = direita da tela) |
-| `wind_gusts_10m` | `storm` | Rajadas fortes escurecem um pouco |
-| `sunrise`, `sunset` | posição do sol e da lua | Horário local do lugar |
+| `cloud_cover`, `cloud_cover_low/mid/high` | `cloud` | Total cover, with low clouds weighted more |
+| `weather_code` (WMO) | floor for `cloud`, `rain`, `storm` and the condition label | Table in `src/live/openMeteo.ts` |
+| `precipitation` | `rain` | mm converted to intensity |
+| `wind_speed_10m`, `wind_direction_10m` | `wind` | Strength and direction (east = right side of the screen) |
+| `wind_gusts_10m` | `storm` | Strong gusts darken the sky a bit |
+| `sunrise`, `sunset` | sun and moon position | Location's local time |
 
-Neve (códigos 71–77, 85, 86) ainda aparece como céu nublado, sem flocos.
+Snow (codes 71–77, 85, 86) still shows as an overcast sky, without flakes.
 
-## Deploy no GitHub Pages
+## Deploying to GitHub Pages
 
-O workflow `.github/workflows/deploy.yml` roda `npm run build` e publica a pasta `dist` a cada push na `main`. O `vite.config.ts` usa `base: "./"`, então o build funciona em qualquer subpasta. A geolocalização do navegador exige HTTPS, que o GitHub Pages já fornece. Não há backend nem variáveis de ambiente.
+The `.github/workflows/deploy.yml` workflow runs `npm run build` and publishes the `dist` folder on every push to `main`. `vite.config.ts` uses `base: "./"`, so the build works from any subpath. Browser geolocation requires HTTPS, which GitHub Pages already provides. There is no backend and there are no environment variables.
 
-## Física da chuva
+## Rain physics
 
-Os números da chuva vêm da literatura de meteorologia e de física de superfícies (`src/engine/rainPhysics.ts`):
+The rain numbers come from the meteorology and surface physics literature (`src/engine/rainPhysics.ts`):
 
-| Fenômeno | Modelo | Onde entra |
+| Phenomenon | Model | Where it's used |
 |---|---|---|
-| Tamanho das gotas | Marshall & Palmer (1948): N(D) = 8000·e^(−ΛD), Λ = 4,1·R^−0,21 | Diâmetro de cada gota caindo e de cada impacto no vidro |
-| Velocidade de queda | Atlas et al. (1973), ajuste de Gunn & Kinzer (1949): v = 9,65 − 10,3·e^(−0,6D) m/s | Velocidade e comprimento dos rastros |
-| Inclinação | vento ÷ velocidade de queda | Garoa voa com o vento; gota grande cai quase reta |
-| Brilho do rastro | Garg & Nayar (2006): depende de quanto tempo a gota fica sobre cada ponto | Rastros finos e rápidos são mais fracos; gotas distantes somem na umidade |
-| Fluxo no vidro | concentração × velocidade × área × exposição ao vento | Quantas gotas batem por segundo; janela vertical pega mais chuva com vento |
-| Gota presa | Furmidge (1962): ρgV = wγ(cos θr − cos θa), com ângulos do vidro comum | Raio crítico ≈ 2,5 mm: abaixo disso a gota não escorre |
-| Gota escorrendo | Le Grand, Daerr & Limat (2005): velocidade linear no excesso sobre o crítico | Gotas maiores descem mais rápido |
-| Pérolas | Podgorski, Flesselles & Limat (2001) | Acima de ~45 mm/s a traseira vira cúspide e solta gotinhas |
+| Drop size | Marshall & Palmer (1948): N(D) = 8000·e^(−ΛD), Λ = 4.1·R^−0.21 | Diameter of each falling drop and each impact on the glass |
+| Fall speed | Atlas et al. (1973), fit of Gunn & Kinzer (1949): v = 9.65 − 10.3·e^(−0.6D) m/s | Streak speed and length |
+| Slant | wind ÷ fall speed | Drizzle blows with the wind; large drops fall almost straight |
+| Streak brightness | Garg & Nayar (2006): depends on how long the drop stays over each pixel | Thin, fast streaks are fainter; distant drops fade into the humidity |
+| Flux on the glass | concentration × speed × area × wind exposure | How many drops hit per second; a vertical window catches more rain with wind |
+| Pinned drop | Furmidge (1962): ρgV = wγ(cos θr − cos θa), with common window glass angles | Critical radius ≈ 2.5 mm: below it the drop doesn't slide |
+| Sliding drop | Le Grand, Daerr & Limat (2005): speed linear in the excess over critical | Bigger drops slide faster |
+| Pearling | Podgorski, Flesselles & Limat (2001) | Above ~45 mm/s the tail forms a cusp and sheds droplets |
 
-A intensidade 0–1 da engine é convertida em mm/h numa escala logarítmica (0,2 ≈ 0,4 mm/h garoa; 0,65 ≈ 5 mm/h moderada; 1 ≈ 30 mm/h muito forte). No modo ao vivo, a precipitação da API vira mm/h diretamente.
+The engine's 0–1 intensity is mapped to mm/h on a logarithmic scale (0.2 ≈ 0.4 mm/h drizzle; 0.65 ≈ 5 mm/h moderate; 1 ≈ 30 mm/h very heavy). In live mode, the API's precipitation becomes mm/h directly.
 
-Duas liberdades artísticas, assumidas: a evaporação depois que a chuva para é acelerada (na vida real um vidro leva minutos para secar), e a escala do vidro na tela é fixa em `GLASS_PX_PER_MM` (6 px de CSS por milímetro).
+Two deliberate artistic liberties: evaporation after the rain stops is sped up (real glass takes minutes to dry), and the on-screen glass scale is fixed at `GLASS_PX_PER_MM` (6 CSS px per millimeter).
 
-**Recife:** a quadra chuvosa vai de abril a julho, puxada pelos distúrbios ondulatórios de leste que chegam com os alísios de sudeste. Por isso os presets usam vento de leste moderado, e as chuvas fortes vêm inclinadas.
+**Recife:** the rainy season runs from April to July, driven by easterly wave disturbances that arrive with the southeast trade winds. That's why the presets use moderate easterly wind and heavy rain comes in slanted.
 
-## Como funciona
+## How it works
 
-A cena tem três passes por quadro. Os dois primeiros desenham numa textura; o terceiro lê essa textura e desenha na tela:
+The scene has three passes per frame. The first two draw into a texture; the third reads that texture and draws to the screen:
 
-1. **Céu** (`SKY_FS`): um triângulo de tela cheia. O fragment shader calcula o gradiente pela elevação do sol (dia, crepúsculo, noite), acinzenta o céu conforme a nebulosidade, desenha sol, lua e estrelas, e gera as nuvens com fBm e *domain warping* em duas camadas com parallax. A iluminação das nuvens compara a densidade um passo na direção do sol, o que cria bordas iluminadas. O relâmpago é um uniform que ilumina as nuvens por dentro.
-2. **Chuva** (`RAIN_VS`): partículas sem estado. Cada gota é um quad de 6 vértices cuja posição é calculada no vertex shader só a partir de `gl_VertexID` e do tempo, então o JavaScript não atualiza nenhuma gota. As gotas ao fundo são menores, mais lentas e mais transparentes.
+1. **Sky** (`SKY_FS`): a full-screen triangle. The fragment shader computes the gradient from the sun's elevation (day, twilight, night), greys the sky according to cloud cover, draws the sun, moon and stars, and generates clouds with fBm and *domain warping* in two parallax layers. Cloud lighting compares density one step toward the sun, which creates lit edges. Lightning is a uniform that lights the clouds from within.
+2. **Rain** (`RAIN_VS`): stateless particles. Each drop is a 6-vertex quad whose position is computed in the vertex shader from `gl_VertexID` and time alone, so JavaScript never updates a single drop. Drops in the background are smaller, slower and more transparent.
 
-O sol tem disco com escurecimento de borda, coroa, bloom e raios sutis que giram devagar, e fica mais alaranjado perto do horizonte. A lua é renderizada como uma esfera iluminada pela fase, com mares, crateras procedurais e luz cinérea no lado escuro; a orientação da crescente segue o hemisfério sul. A fase padrão é calculada a partir da data (`moonPhaseFor()`).
+The sun has a limb-darkened disc, corona, bloom and subtle slowly rotating rays, and turns more orange near the horizon. The moon is rendered as a sphere lit by its phase, with maria, procedural craters and earthshine on the dark side; the crescent is oriented for the southern hemisphere. The default phase is computed from the date (`moonPhaseFor()`).
 
-3. **Vidro**: as gotas são uma **simulação em JavaScript** (`RainSimulator.ts`): gotas simuladas na CPU, desenhadas como normais numa textura e refratadas no shader. O movimento usa impulso e atrito: gotas pequenas ficam presas pela tensão superficial; acima de um tamanho crítico elas às vezes soltam, aceleram, desaceleram e param de forma contínua, serpenteando de leve e puxadas pelo vento. Pelo caminho deixam gotinhas e perdem água. Gotas que se encostam se fundem, e a maior pode voltar a escorrer. Gotículas finas e a névoa do vidro ficam em texturas persistentes que as gotas apagam por onde passam. Como essas texturas são de 8 bits, as mudanças são aplicadas em lotes (menores que 1/255 por quadro se perderiam no arredondamento) e, quando o vidro seca de vez, elas são limpas por completo, sem sobrar mancha. O comportamento muda com a chuva: **garoa** embaça e cobre de gotículas, quase nada escorre; **chuva** traz gotas médias; **chuva forte e trovoada** trazem gotas grandes que escorrem com frequência. O mesmo passe faz o **reflexo do sol**: fantasmas hexagonais ao longo do eixo sol–centro, halo com dispersão de cor e véu de luz. Para saber se o sol está visível de verdade, o shader mede o brilho da cena no ponto do sol; quando uma nuvem passa na frente, o reflexo some sozinho.
+3. **Glass**: the drops are a **JavaScript simulation** (`RainSimulator.ts`): drops simulated on the CPU, drawn as normals into a texture and refracted in the shader. Motion uses momentum and friction: small drops are held by surface tension; above a critical size they occasionally break free, speed up, slow down and stop smoothly, meandering slightly and pushed by the wind. Along the way they leave droplets behind and lose water. Drops that touch merge, and the bigger one may start sliding again. Fine droplets and glass fog live in persistent textures that drops wipe clean as they pass. Since these textures are 8-bit, changes are applied in batches (anything under 1/255 per frame would be lost to rounding) and, once the glass is fully dry, they are cleared completely so no smudge is left. Behavior changes with the rain: **drizzle** fogs the glass and covers it in droplets, with almost nothing sliding; **rain** brings medium drops; **heavy rain and thunderstorms** bring large drops that slide often. The same pass renders the **sun flare**: hexagonal ghosts along the sun–center axis, a halo with color dispersion, and a veiling glare. To know whether the sun is actually visible, the shader measures scene brightness at the sun's position; when a cloud passes in front, the flare fades out on its own.
 
-A engine interpola todos os parâmetros com decaimento exponencial, então qualquer mudança vira uma transição.
+The engine interpolates every parameter with exponential decay, so any change becomes a transition.
 
-## Desempenho
+## Performance
 
-- Renderiza a 60% da resolução por padrão; as nuvens são suaves e a diferença é imperceptível.
-- Pausa sozinha quando o canvas sai da tela (IntersectionObserver) ou a aba fica oculta.
-- Respeita `prefers-reduced-motion`: mostra um quadro estático.
-- Sem WebGL2, cai para um gradiente em CSS.
-- Trata perda de contexto WebGL (comum no iOS ao trocar de app).
+- Renders at 60% resolution by default; the clouds are soft and the difference is unnoticeable.
+- Pauses automatically when the canvas leaves the viewport (IntersectionObserver) or the tab is hidden.
+- Respects `prefers-reduced-motion`: shows a static frame.
+- Without WebGL2, falls back to a CSS gradient.
+- Handles WebGL context loss (common on iOS when switching apps).
 
-## Rodar a demo
+## Running the demo
 
 ```bash
 npm install
-npm run dev            # servidor de desenvolvimento
-npm run build:single   # gera dist/index.html com tudo embutido
+npm run dev            # development server
+npm run build:single   # builds dist/index.html with everything inlined
 ```
 
-## Licença
+## License
 
-MIT. Veja [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
