@@ -1,0 +1,29 @@
+{
+  "name": "webgl-weather",
+  "version": "0.1.0",
+  "description": "Réplica em React do fundo animado do app Tempo do macOS: céu, nuvens, chuva, gotas no vidro, sol e lua em WebGL2.",
+  "type": "module",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:single": "vite build --mode single",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vite-plugin-singlefile": "^2.0.2"
+  }
+}
