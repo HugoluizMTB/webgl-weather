@@ -181,7 +181,7 @@ A cena tem três passes por quadro. Os dois primeiros desenham numa textura; o t
 
 O sol tem disco com escurecimento de borda, coroa, bloom e raios sutis que giram devagar, e fica mais alaranjado perto do horizonte. A lua é renderizada como uma esfera iluminada pela fase, com mares, crateras procedurais e luz cinérea no lado escuro; a orientação da crescente segue o hemisfério sul. A fase padrão é calculada a partir da data (`moonPhaseFor()`).
 
-3. **Vidro**: as gotas são uma **simulação em JavaScript** (`RainSimulator.ts`), com a arquitetura do [raindrop-fx](https://github.com/SardineFish/raindrop-fx) de SardineFish (MIT): gotas simuladas na CPU, desenhadas como normais numa textura e refratadas no shader. O movimento usa impulso e atrito: gotas pequenas ficam presas pela tensão superficial; acima de um tamanho crítico elas às vezes soltam, aceleram, desaceleram e param de forma contínua, serpenteando de leve e puxadas pelo vento. Pelo caminho deixam gotinhas e perdem água. Gotas que se encostam se fundem, e a maior pode voltar a escorrer. Gotículas finas e a névoa do vidro ficam em texturas persistentes que as gotas apagam por onde passam. Como essas texturas são de 8 bits, as mudanças são aplicadas em lotes (menores que 1/255 por quadro se perderiam no arredondamento) e, quando o vidro seca de vez, elas são limpas por completo, sem sobrar mancha. O comportamento muda com a chuva: **garoa** embaça e cobre de gotículas, quase nada escorre; **chuva** traz gotas médias; **chuva forte e trovoada** trazem gotas grandes que escorrem com frequência. O mesmo passe faz o **reflexo do sol**: fantasmas hexagonais ao longo do eixo sol–centro, halo com dispersão de cor e véu de luz. Para saber se o sol está visível de verdade, o shader mede o brilho da cena no ponto do sol; quando uma nuvem passa na frente, o reflexo some sozinho.
+3. **Vidro**: as gotas são uma **simulação em JavaScript** (`RainSimulator.ts`): gotas simuladas na CPU, desenhadas como normais numa textura e refratadas no shader. O movimento usa impulso e atrito: gotas pequenas ficam presas pela tensão superficial; acima de um tamanho crítico elas às vezes soltam, aceleram, desaceleram e param de forma contínua, serpenteando de leve e puxadas pelo vento. Pelo caminho deixam gotinhas e perdem água. Gotas que se encostam se fundem, e a maior pode voltar a escorrer. Gotículas finas e a névoa do vidro ficam em texturas persistentes que as gotas apagam por onde passam. Como essas texturas são de 8 bits, as mudanças são aplicadas em lotes (menores que 1/255 por quadro se perderiam no arredondamento) e, quando o vidro seca de vez, elas são limpas por completo, sem sobrar mancha. O comportamento muda com a chuva: **garoa** embaça e cobre de gotículas, quase nada escorre; **chuva** traz gotas médias; **chuva forte e trovoada** trazem gotas grandes que escorrem com frequência. O mesmo passe faz o **reflexo do sol**: fantasmas hexagonais ao longo do eixo sol–centro, halo com dispersão de cor e véu de luz. Para saber se o sol está visível de verdade, o shader mede o brilho da cena no ponto do sol; quando uma nuvem passa na frente, o reflexo some sozinho.
 
 A engine interpola todos os parâmetros com decaimento exponencial, então qualquer mudança vira uma transição.
 
@@ -200,19 +200,6 @@ npm install
 npm run dev            # servidor de desenvolvimento
 npm run build:single   # gera dist/index.html com tudo embutido
 ```
-
-## Próximos passos
-
-- Trocar o ruído de valor por `snoise` do [LYGIA](https://lygia.xyz) para nuvens mais orgânicas.
-- Gotas colidindo com elementos da interface (passar retângulos como uniforms).
-- Neblina e mormaço (faixa de névoa com ruído na base).
-- Mover a engine para um Web Worker com `OffscreenCanvas`.
-- Publicar como pacote npm com build de biblioteca (`vite build --lib`).
-
-## Créditos
-
-- Arquitetura das gotas no vidro baseada no [raindrop-fx](https://github.com/SardineFish/raindrop-fx), © 2021 SardineFish, licença MIT.
-- Inspirado no app Tempo da Apple. Este projeto não tem relação com a Apple.
 
 ## Licença
 

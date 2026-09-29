@@ -280,7 +280,7 @@ void main() {
 }`;
 
 /* ------------------------------------------------------------------ gotas no vidro
- * Arquitetura baseada no raindrop-fx (MIT, SardineFish):
+ * Arquitetura:
  * 1. as gotas simuladas em JS são desenhadas como sprites numa textura de normais;
  * 2. gotículas finas se acumulam numa textura persistente;
  * 3. a névoa do vidro se acumula noutra; as gotas apagam as duas por onde passam;

@@ -1,9 +1,8 @@
 /**
  * Gotas no vidro, em unidades físicas (volume em mm³, tamanho em mm, velocidade em mm/s).
  *
- * Arquitetura (simulação na CPU, gotas desenhadas como normais numa textura e
- * refratadas no shader) baseada no raindrop-fx de SardineFish (MIT):
- * https://github.com/SardineFish/raindrop-fx
+ * Simulação na CPU; as gotas são desenhadas como normais numa textura e
+ * refratadas no shader.
  *
  * Física (ver rainPhysics.ts):
  * - cada impacto traz uma gota com diâmetro sorteado de Marshall-Palmer;
