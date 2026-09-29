@@ -208,21 +208,21 @@ export class RainSimulator {
     for (const a of this.drops) {
       if (a.dead) continue;
       const cx = Math.floor(a.x / cell), cy = Math.floor(a.y / cell);
-      for (let ox = -1; ox <= 1; ox++) {
-        for (let oy = -1; oy <= 1; oy++) {
-          const list = this.cells.get(key(cx + ox, cy + oy));
-          if (!list) continue;
-          for (const b of list) {
-            if (b === a || b.dead || a.dead) continue;
-            if (b.parent === a || a.parent === b) continue;
-            const dx = a.x - b.x, dy = a.y - b.y;
-            // as bases se tocam
-            const lim = (a.a + b.a) * px * 0.95;
-            if (dx * dx + dy * dy < lim * lim) {
-              if (a.vol >= b.vol) { a.merge(b); b.dead = true; }
-              else { b.merge(a); a.dead = true; }
-            }
-          }
+      // as 9 células ao redor (coluna por coluna)
+      for (let n = 0; n < 9; n++) {
+        const list = this.cells.get(key(cx + Math.floor(n / 3) - 1, cy + (n % 3) - 1));
+        if (!list) continue;
+        for (const b of list) {
+          if (b === a || b.dead || a.dead) continue;
+          if (b.parent === a || a.parent === b) continue;
+          const dx = a.x - b.x, dy = a.y - b.y;
+          // as bases se tocam
+          const lim = (a.a + b.a) * px * 0.95;
+          if (dx * dx + dy * dy >= lim * lim) continue;
+          // no empate fica a gota da vez
+          const [keep, gone] = b.vol > a.vol ? [b, a] : [a, b];
+          keep.merge(gone);
+          gone.dead = true;
         }
       }
     }

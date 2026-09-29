@@ -184,3 +184,21 @@ body {
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px 16px; margin: 10px 0 0; }
 .grid dt { font-size: .78rem; color: var(--ink-soft); }
 .grid dd { margin: 2px 0 0; font-weight: 600; }
+
+/* link do repositório, canto inferior esquerdo */
+.gh {
+  position: absolute;
+  left: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--ink-soft);
+  transition: color 0.2s, background 0.2s;
+}
+.gh:hover { color: var(--ink); background: rgba(255, 255, 255, 0.08); }
+.gh:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* em tela estreita o HUD ocupa a base; o ícone sobe para não ficar embaixo dele */
+@media (max-width: 700px) { .gh { bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 72px); left: 12px; } }
