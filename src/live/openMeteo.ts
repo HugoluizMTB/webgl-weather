@@ -55,7 +55,7 @@ export async function fetchWeather(lat: number, lon: number, signal?: AbortSigna
   url.searchParams.set("forecast_days", "1");
 
   const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`Open-Meteo respondeu ${res.status}`);
+  if (!res.ok) throw new Error(`Open-Meteo responded ${res.status}`);
   const j = await res.json();
   const c = j.current;
   const d = j.daily;
@@ -104,38 +104,38 @@ export function localHourAt(utcOffsetSeconds: number, now = Date.now()) {
 type CodeInfo = { label: string; rain?: number; storm?: number; minCloud?: number };
 
 const WMO: Record<number, CodeInfo> = {
-  0: { label: "Céu limpo" },
-  1: { label: "Predominantemente limpo" },
-  2: { label: "Parcialmente nublado" },
-  3: { label: "Nublado", minCloud: 0.92 },
-  45: { label: "Neblina", minCloud: 0.9 },
-  48: { label: "Neblina com geada", minCloud: 0.9 },
-  51: { label: "Garoa fraca", rain: 0.12, minCloud: 0.75 },
-  53: { label: "Garoa", rain: 0.2, minCloud: 0.8 },
-  55: { label: "Garoa intensa", rain: 0.3, minCloud: 0.85 },
-  56: { label: "Garoa congelante", rain: 0.15, minCloud: 0.8 },
-  57: { label: "Garoa congelante", rain: 0.3, minCloud: 0.85 },
-  61: { label: "Chuva fraca", rain: 0.35, minCloud: 0.8 },
-  63: { label: "Chuva", rain: 0.6, minCloud: 0.9 },
-  65: { label: "Chuva forte", rain: 0.9, minCloud: 0.97, storm: 0.3 },
-  66: { label: "Chuva congelante", rain: 0.4, minCloud: 0.85 },
-  67: { label: "Chuva congelante forte", rain: 0.8, minCloud: 0.95 },
-  71: { label: "Neve fraca", minCloud: 0.85 },
-  73: { label: "Neve", minCloud: 0.9 },
-  75: { label: "Neve forte", minCloud: 0.95 },
-  77: { label: "Grãos de neve", minCloud: 0.85 },
-  80: { label: "Pancadas de chuva fracas", rain: 0.4, minCloud: 0.6 },
-  81: { label: "Pancadas de chuva", rain: 0.65, minCloud: 0.7 },
-  82: { label: "Pancadas de chuva fortes", rain: 1, minCloud: 0.85, storm: 0.35 },
-  85: { label: "Pancadas de neve", minCloud: 0.8 },
-  86: { label: "Pancadas de neve fortes", minCloud: 0.9 },
-  95: { label: "Trovoada", rain: 0.75, storm: 0.85, minCloud: 0.95 },
-  96: { label: "Trovoada com granizo", rain: 0.85, storm: 1, minCloud: 1 },
-  99: { label: "Trovoada com granizo forte", rain: 0.95, storm: 1, minCloud: 1 },
+  0: { label: "Clear" },
+  1: { label: "Mostly clear" },
+  2: { label: "Partly cloudy" },
+  3: { label: "Cloudy", minCloud: 0.92 },
+  45: { label: "Fog", minCloud: 0.9 },
+  48: { label: "Freezing fog", minCloud: 0.9 },
+  51: { label: "Light drizzle", rain: 0.12, minCloud: 0.75 },
+  53: { label: "Drizzle", rain: 0.2, minCloud: 0.8 },
+  55: { label: "Heavy drizzle", rain: 0.3, minCloud: 0.85 },
+  56: { label: "Freezing drizzle", rain: 0.15, minCloud: 0.8 },
+  57: { label: "Freezing drizzle", rain: 0.3, minCloud: 0.85 },
+  61: { label: "Light rain", rain: 0.35, minCloud: 0.8 },
+  63: { label: "Rain", rain: 0.6, minCloud: 0.9 },
+  65: { label: "Heavy rain", rain: 0.9, minCloud: 0.97, storm: 0.3 },
+  66: { label: "Freezing rain", rain: 0.4, minCloud: 0.85 },
+  67: { label: "Heavy freezing rain", rain: 0.8, minCloud: 0.95 },
+  71: { label: "Light snow", minCloud: 0.85 },
+  73: { label: "Snow", minCloud: 0.9 },
+  75: { label: "Heavy snow", minCloud: 0.95 },
+  77: { label: "Snow grains", minCloud: 0.85 },
+  80: { label: "Light showers", rain: 0.4, minCloud: 0.6 },
+  81: { label: "Showers", rain: 0.65, minCloud: 0.7 },
+  82: { label: "Heavy showers", rain: 1, minCloud: 0.85, storm: 0.35 },
+  85: { label: "Snow showers", minCloud: 0.8 },
+  86: { label: "Heavy snow showers", minCloud: 0.9 },
+  95: { label: "Thunderstorm", rain: 0.75, storm: 0.85, minCloud: 0.95 },
+  96: { label: "Thunderstorm with hail", rain: 0.85, storm: 1, minCloud: 1 },
+  99: { label: "Thunderstorm with heavy hail", rain: 0.95, storm: 1, minCloud: 1 },
 };
 
 export function conditionLabel(code: number) {
-  return WMO[code]?.label ?? "Tempo indefinido";
+  return WMO[code]?.label ?? "Unknown conditions";
 }
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));

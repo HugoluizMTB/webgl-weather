@@ -57,12 +57,12 @@ export function intensityFromRainRate(rate: number) {
 
 /** Classificação usual da intensidade (mm/h). */
 export function rainCategory(rate: number) {
-  if (rate <= 0) return "sem chuva";
-  if (rate < 1) return "garoa";
-  if (rate < 2.5) return "fraca";
-  if (rate < 7.6) return "moderada";
-  if (rate < 50) return "forte";
-  return "violenta";
+  if (rate <= 0) return "no rain";
+  if (rate < 1) return "drizzle";
+  if (rate < 2.5) return "light";
+  if (rate < 7.6) return "moderate";
+  if (rate < 50) return "heavy";
+  return "violent";
 }
 
 // ------------------------------------------------------------------ gotas no vidro

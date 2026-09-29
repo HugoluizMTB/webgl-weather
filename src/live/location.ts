@@ -19,7 +19,7 @@ const GEO_ENDPOINT = "https://api.bigdatacloud.net/data/reverse-geocode-client";
 
 /** Usado quando nada funciona. */
 export const FALLBACK_PLACE: Place = {
-  lat: -8.0476, lon: -34.877, city: "Recife", region: "Pernambuco", country: "Brasil", source: "fallback",
+  lat: -8.0476, lon: -34.877, city: "Recife", region: "Pernambuco", country: "Brazil", source: "fallback",
 };
 
 const STORAGE_KEY = "webgl-weather:place";
@@ -49,7 +49,7 @@ export async function hasGeoPermission(): Promise<boolean> {
 
 function gpsPosition(timeout = 9000): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
-    if (!("geolocation" in navigator)) return reject(new Error("Geolocalização indisponível"));
+    if (!("geolocation" in navigator)) return reject(new Error("Geolocation unavailable"));
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: false, timeout, maximumAge: 10 * 60 * 1000,
     });
@@ -62,9 +62,9 @@ async function reverseGeocode(lat?: number, lon?: number, signal?: AbortSignal) 
     url.searchParams.set("latitude", String(lat));
     url.searchParams.set("longitude", String(lon));
   }
-  url.searchParams.set("localityLanguage", "pt");
+  url.searchParams.set("localityLanguage", "en");
   const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`Geocodificação respondeu ${res.status}`);
+  if (!res.ok) throw new Error(`Geocoding responded ${res.status}`);
   return res.json() as Promise<{
     latitude: number; longitude: number; city?: string; locality?: string;
     principalSubdivision?: string; countryName?: string;
@@ -75,7 +75,7 @@ function toPlace(g: Awaited<ReturnType<typeof reverseGeocode>>, source: Place["s
   return {
     lat: lat ?? g.latitude,
     lon: lon ?? g.longitude,
-    city: g.city || g.locality || g.principalSubdivision || "Sua localização",
+    city: g.city || g.locality || g.principalSubdivision || "Your location",
     region: g.principalSubdivision,
     country: g.countryName,
     source,
@@ -90,7 +90,7 @@ export async function locatePrecise(signal?: AbortSignal): Promise<Place> {
   try {
     place = toPlace(await reverseGeocode(lat, lon, signal), "gps", lat, lon);
   } catch {
-    place = { lat, lon, city: "Sua localização", source: "gps" };
+    place = { lat, lon, city: "Your location", source: "gps" };
   }
   savePlace(place);
   return place;
@@ -99,6 +99,6 @@ export async function locatePrecise(signal?: AbortSignal): Promise<Place> {
 /** Localização aproximada por IP, sem pop-up. */
 export async function locateApprox(signal?: AbortSignal): Promise<Place> {
   const g = await reverseGeocode(undefined, undefined, signal);
-  if (typeof g.latitude !== "number") throw new Error("Sem coordenadas por IP");
+  if (typeof g.latitude !== "number") throw new Error("No coordinates from IP");
   return toPlace(g, "ip");
 }

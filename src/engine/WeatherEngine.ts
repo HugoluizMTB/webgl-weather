@@ -273,7 +273,7 @@ export class WeatherEngine {
       this.dropletP = this.program(DROPLET_VS, DROP_FS, ["u_res", "u_seed", "u_sizeRange"]);
       this.fillP = this.program(SKY_VS, FILL_FS, ["u_color"]);
     } catch (err) {
-      console.warn("[webgl-weather] shader falhou, usando fallback em CSS", err);
+      console.warn("[webgl-weather] shader failed, using CSS fallback", err);
       this.gl = null;
       this.paintFallback();
       return;

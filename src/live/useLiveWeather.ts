@@ -49,8 +49,8 @@ export function useLiveWeather(enabled = true): LiveState {
     } catch (e) {
       if (ac.signal.aborted) return;
       setError(e instanceof TypeError
-        ? "Sem conexão com o serviço de clima"
-        : e instanceof Error ? e.message : "Falha ao buscar o clima");
+        ? "Can't reach the weather service"
+        : e instanceof Error ? e.message : "Failed to fetch the weather");
       setStatus("error");
     }
   }, []);
@@ -98,7 +98,7 @@ export function useLiveWeather(enabled = true): LiveState {
       await load(await locatePrecise());
     } catch (e) {
       const denied = (e as GeolocationPositionError)?.code === 1;
-      setError(denied ? "Permissão de localização negada" : "Não foi possível obter o GPS");
+      setError(denied ? "Location permission denied" : "Couldn't get GPS location");
       setStatus(weather ? "ready" : "error");
     }
   }, [load, weather]);

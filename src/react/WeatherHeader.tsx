@@ -30,19 +30,19 @@ const SYSTEM = `-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "S
  */
 export const TYPE_PRESETS = {
   nativa: {
-    label: "Nativa",
+    label: "Native",
     display: SYSTEM, text: SYSTEM,
     tempWeight: 200, cityWeight: 400, labelWeight: 500, weightRange: [100, 900],
     tracking: -0.04,
   },
   moderna: {
-    label: "Moderna",
+    label: "Modern",
     display: `"Manrope", ${SYSTEM}`, text: `"Manrope", ${SYSTEM}`,
     tempWeight: 300, cityWeight: 500, labelWeight: 600, weightRange: [200, 800],
     tracking: -0.06,
   },
   geometrica: {
-    label: "Geométrica",
+    label: "Geometric",
     display: `"Outfit", ${SYSTEM}`, text: `"Outfit", ${SYSTEM}`,
     tempWeight: 200, cityWeight: 400, labelWeight: 500, weightRange: [100, 900],
     tracking: -0.06,
@@ -54,13 +54,13 @@ export const TYPE_PRESETS = {
     tracking: -0.04,
   },
   grotesca: {
-    label: "Grotesca",
+    label: "Grotesque",
     display: `"Bricolage Grotesque", ${SYSTEM}`, text: `"Bricolage Grotesque", ${SYSTEM}`,
     tempWeight: 300, cityWeight: 500, labelWeight: 500, weightRange: [200, 800],
     tracking: -0.05,
   },
   expandida: {
-    label: "Expandida",
+    label: "Expanded",
     display: `"Unbounded", ${SYSTEM}`, text: `"Manrope", ${SYSTEM}`,
     tempWeight: 300, cityWeight: 400, labelWeight: 600, weightRange: [200, 900],
     tracking: -0.07,
@@ -126,7 +126,7 @@ export function WeatherHeader({ city, temp, condition, hi, lo, typography = {}, 
       </h1>
 
       <p
-        aria-label={`${temp} graus`}
+        aria-label={`${temp} degrees`}
         style={{
           position: "relative",
           margin: 0,
@@ -168,8 +168,8 @@ export function WeatherHeader({ city, temp, condition, hi, lo, typography = {}, 
           fontWeight: t.labelWeight,
           fontSize: `${1.2 * s}rem`,
         }}>
-          {hi !== undefined && <span>Máx. {hi}°</span>}
-          {lo !== undefined && <span>Mín. {lo}°</span>}
+          {hi !== undefined && <span>H:{hi}°</span>}
+          {lo !== undefined && <span>L:{lo}°</span>}
         </p>
       )}
     </header>
